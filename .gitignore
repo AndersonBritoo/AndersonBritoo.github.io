@@ -1,0 +1,64 @@
+# ===============================
+# SYSTEM FILES (Windows)
+# ===============================
+
+Thumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ===============================
+# MACOS (caso alguém abra o repo em Mac)
+# ===============================
+
+.DS_Store
+
+# ===============================
+# VS CODE
+# ===============================
+
+.vscode/*
+
+# ===============================
+# NODE / PACKAGE (caso uses no futuro)
+# ===============================
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ===============================
+# LOGS & TEMP FILES
+# ===============================
+
+*.log
+*.tmp
+*.temp
+.cache/
+dist/
+build/
+
+# ===============================
+# ENVIRONMENT FILES (segurança)
+# ===============================
+
+.env
+.env.local
+.env.*
+
+# ===============================
+# BACKUPS & LOCAL FILES
+# ===============================
+
+backup/
+*.bak
+*.old
+*~
+
+# ===============================
+# OS GENERATED FILES
+# ===============================
+
+ehthumbs.db
+Icon?

@@ -1,0 +1,1651 @@
+/* =======================================================
+   css/style.css
+   =======================================================
+
+   Folha de estilos principal do portfólio de Andérson.
+   Utiliza CSS custom properties (tokens) para garantir
+   consistência visual e facilitar futuras alterações de tema.
+
+   Tipografia via Google Fonts:
+     - Syne        → headings e UI geral
+     - DM Mono     → labels, tags, código, elementos técnicos
+     - Instrument Serif → destaques itálicos (hero, goal-box)
+
+   Estrutura de ecrã único (single-page) com scroll suave.
+   Animações de entrada controladas pela classe .reveal,
+   ativada via IntersectionObserver em main.js.
+
+   INDEX
+   ─────────────────────────────────────────────────────
+   01. Design Tokens          (CSS Custom Properties)
+   02. Reset & Base           (*, html, body, a, img)
+   03. Scrollbar              (webkit)
+   04. Layout & Utilities     (.container, .section,
+                               .section-label, .section-title,
+                               .section-divider)
+   05. Buttons                (.btn, .btn-primary,
+                               .btn-outline, .btn-ghost)
+   06. Navigation             (#navbar, .nav-*, .lang-btn,
+                               .hamburger, .mobile-menu)
+   07. Hero Section           (#home, .hero-*, .social-pill)
+   08. Tech Ticker            (.ticker-*)
+   09. Projects Section       (#projects, .projects-header,
+                               .slider-*, .project-*)
+   10. Modal                  (.modal-*)
+   11. About Section          (#about, .about-*, .goal-box)
+   12. Contact Section        (#contact, .contact-*,
+                               .social-link, .form-*)
+   13. Footer                 (footer)
+   14. Animations & Keyframes (@keyframes)
+   15. Scroll Reveal          (.reveal)
+   16. PDF Modal
+   17. Responsive             (@media queries)
+   ─────────────────────────────────────────────────────
+*/
+
+
+/* =======================================================
+   01. DESIGN TOKENS
+======================================================= */
+
+/*
+  Variáveis globais de design definidas em :root para reutilização
+  consistente em todo o ficheiro. Qualquer alteração de tema deve
+  ser feita aqui e propagar-se automaticamente.
+*/
+:root {
+  /* Backgrounds — escala de fundos do mais escuro ao mais claro */
+  --bg:           #0a0a0f;
+  --bg-2:         #0f0f18;
+  --bg-3:         #13131f;
+  --surface:      #1a1a2e;
+
+  /* Borders — tom de branco muito baixo para subtileza */
+  --border:       rgba(255, 255, 255, 0.07);
+
+  /* Accent colours — paleta de destaque: roxo, ciano, rosa */
+  --accent:       #7b61ff;
+  --accent-2:     #00e5ff;
+  --accent-3:     #ff61ab;
+
+  /* Typography — hierarquia de cinzas para texto */
+  --text:         #e8e8f0;
+  --text-muted:   #8888a8;
+  --text-dim:     #55556a;
+
+  /* Shape — raios de borda reutilizados em cards e botões */
+  --radius:       12px;
+  --radius-lg:    20px;
+
+  /* Motion — easing padrão para todas as transições */
+  --transition:   0.35s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout — altura fixa da navbar; usada em padding-top e posicionamento */
+  --nav-h:        70px;
+}
+
+
+/* =======================================================
+   02. RESET & BASE
+======================================================= */
+
+/*
+  Reset minimalista: elimina margens, paddings e unifica box-model.
+  Evita inconsistências entre browsers sem usar uma biblioteca externa.
+*/
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin:     0;
+  padding:    0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Syne', sans-serif;
+  background:  var(--bg);
+  color:       var(--text);
+  line-height: 1.6;
+  overflow-x:  hidden;
+}
+
+/*
+  Pseudo-elemento de ruído granular fixo sobre toda a página.
+  Usa um SVG inline com filtro feTurbulence para simular textura analógica,
+  adicionando profundidade visual sem ficheiros externos.
+  pointer-events:none garante que não interfere com interações.
+*/
+body::before {
+  content:          '';
+  position:         fixed;
+  inset:            0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+  pointer-events:   none;
+  z-index:          9999;
+  opacity:          0.4;
+}
+
+a   { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+
+
+/* =======================================================
+   03. SCROLLBAR
+======================================================= */
+
+/* Scrollbar personalizada para browsers WebKit (Chrome, Edge, Safari) */
+::-webkit-scrollbar       { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+
+/* =======================================================
+   04. LAYOUT & UTILITIES
+======================================================= */
+
+/* Largura máxima centralizada com padding lateral — usada em todas as secções */
+.container {
+  max-width: 1200px;
+  margin:    0 auto;
+  padding:   0 2rem;
+}
+
+/* Espaçamento vertical padrão entre secções da página */
+.section {
+  padding: 120px 0;
+}
+
+/* ── Section headings ── */
+
+/* Label pequena acima do título de secção, em estilo monospace e uppercase */
+.section-label {
+  font-family:    'DM Mono', monospace;
+  font-size:      0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color:          var(--accent);
+  margin-bottom:  1rem;
+}
+
+/* Título principal de secção com tamanho fluido via clamp() */
+.section-title {
+  font-size:     clamp(2rem, 5vw, 3.5rem);
+  font-weight:   800;
+  line-height:   1.1;
+  margin-bottom: 1.5rem;
+}
+
+/* Traço decorativo sob o título, com gradiente accent → accent-2 */
+.section-divider {
+  width:        40px;
+  height:       3px;
+  background:   linear-gradient(90deg, var(--accent), var(--accent-2));
+  border-radius: 2px;
+  margin-bottom: 2rem;
+  margin-left:   auto;
+  margin-right:  auto;
+}
+
+
+/* =======================================================
+   05. BUTTONS
+======================================================= */
+
+/*
+  Classe base para todos os botões.
+  Usa position:relative para ancorar o pseudo-elemento de ripple (::after).
+  overflow:hidden assegura que o efeito não extravase os limites do botão.
+*/
+.btn {
+  position:       relative;
+  display:        inline-flex;
+  align-items:    center;
+  gap:            0.5rem;
+  overflow:       hidden;
+  padding:        0.75rem 1.5rem;
+  border:         none;
+  border-radius:  var(--radius);
+  font-family:    'Syne', sans-serif;
+  font-size:      0.9rem;
+  font-weight:    600;
+  cursor:         pointer;
+  transition:     var(--transition);
+}
+
+/* Camada de brilho translúcida que aparece ao fazer hover — simula efeito ripple */
+.btn::after {
+  content:    '';
+  position:   absolute;
+  inset:      0;
+  background: rgba(255, 255, 255, 0.1);
+  opacity:    0;
+  transition: opacity 0.2s;
+}
+
+.btn:hover::after { opacity: 1; }
+
+/* Variantes de botão */
+
+/* Botão principal com fundo sólido na cor de destaque */
+.btn-primary {
+  background: var(--accent);
+  color:      #fff;
+}
+
+/* Botão com borda subtil; muda para accent no hover */
+.btn-outline {
+  background:   transparent;
+  border:       1px solid var(--border);
+  color:        var(--text);
+}
+
+.btn-outline:hover {
+  border-color: var(--accent);
+  color:        var(--accent);
+}
+
+/* Botão translúcido com tint do accent; ideal para ações secundárias */
+.btn-ghost {
+  background: rgba(123, 97, 255, 0.12);
+  border:     1px solid rgba(123, 97, 255, 0.25);
+  color:      var(--accent);
+}
+
+.btn-ghost:hover {
+  background: rgba(123, 97, 255, 0.22);
+}
+
+
+/* =======================================================
+   06. NAVIGATION
+======================================================= */
+
+/* ── Navbar wrapper ── */
+
+/*
+  Navbar fixa no topo com z-index elevado.
+  Por defeito é transparente; ganha fundo fosco (.scrolled)
+  quando o utilizador faz scroll — classe adicionada por main.js.
+*/
+#navbar {
+  position:   fixed;
+  top:        0;
+  left:       0;
+  right:      0;
+  z-index:    1000;
+  height:     var(--nav-h);
+  display:    flex;
+  align-items: center;
+  transition: background 0.4s, box-shadow 0.4s;
+}
+
+/* Estado ativo após scroll: fundo com blur e sombra inferior */
+#navbar.scrolled {
+  background:              rgba(10, 10, 15, 0.85);
+  backdrop-filter:         blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:              0 1px 0 var(--border);
+}
+
+/* ── Inner row ── */
+
+/* Fila interna da navbar; distribui brand, links e ações horizontalmente */
+.nav-inner {
+  display:     flex;
+  align-items: center;
+  gap:         2rem;
+  width:       100%;
+  max-width:   1200px;
+  margin:      0 auto;
+  padding:     0 2rem;
+}
+
+/* ── Brand ── */
+
+/* Logótipo/nome com gradiente de texto; não encolhe em viewports pequenos */
+.nav-brand {
+  flex-shrink:              0;
+  font-size:                1.3rem;
+  font-weight:              800;
+  letter-spacing:           -0.02em;
+  white-space:              nowrap;
+  background:               linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip:  text;
+  -webkit-text-fill-color:  transparent;
+  background-clip:          text;
+}
+
+/* ── Desktop links ── */
+
+/* Lista de links centrada na navbar via margin:auto */
+.nav-links {
+  display:     flex;
+  gap:         0.25rem;
+  margin:      0 auto;
+  list-style:  none;
+}
+
+.nav-links a {
+  display:       block;
+  padding:       0.5rem 1rem;
+  border-radius: 8px;
+  font-size:     0.9rem;
+  font-weight:   500;
+  color:         var(--text-muted);
+  transition:    var(--transition);
+}
+
+/* Estado ativo (.active adicionado por main.js ao fazer scroll/clique) */
+.nav-links a:hover,
+.nav-links a.active {
+  color:      var(--text);
+  background: var(--surface);
+}
+
+/* ── Right-side actions ── */
+
+/* Agrupa botão de idioma, CV e hamburger; não encolhe para manter alinhamento */
+.nav-actions {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+  flex-shrink: 0;
+}
+
+/* Language toggle */
+.lang-btn {
+  padding:        0.5rem 0.9rem;
+  border:         1px solid var(--border);
+  border-radius:  8px;
+  background:     transparent;
+  font-family:    'DM Mono', monospace;
+  font-size:      0.8rem;
+  color:          var(--text-muted);
+  cursor:         pointer;
+  transition:     var(--transition);
+}
+
+.lang-btn:hover {
+  border-color: var(--accent);
+  color:        var(--accent);
+}
+
+/* ── Hamburger (mobile) ── */
+
+/* Oculto em desktop; exibido em mobile via @media para abrir o menu dropdown */
+.hamburger {
+  display:         none;
+  flex-direction:  column;
+  gap:             5px;
+  padding:         8px;
+  border:          none;
+  background:      none;
+  cursor:          pointer;
+}
+
+.hamburger span {
+  display:       block;
+  width:         22px;
+  height:        2px;
+  border-radius: 2px;
+  background:    var(--text);
+  transition:    var(--transition);
+}
+
+/* ── Mobile dropdown ── */
+
+/*
+  Menu mobile ocultado por defeito (display:none).
+  Torna-se visível com a classe .open, adicionada por main.js
+  ao clicar no hamburger. Posicionado imediatamente abaixo da navbar.
+*/
+.mobile-menu {
+  display:         none;
+  position:        fixed;
+  top:             var(--nav-h);
+  left:            0;
+  right:           0;
+  z-index:         999;
+  flex-direction:  column;
+  gap:             0.5rem;
+  padding:         1.5rem 2rem 2rem;
+  background:      rgba(10, 10, 15, 0.97);
+  backdrop-filter: blur(20px);
+  border-bottom:   1px solid var(--border);
+}
+
+.mobile-menu.open { display: flex; }
+
+.mobile-menu a {
+  padding:       0.9rem 1rem;
+  border-radius: 8px;
+  font-weight:   600;
+  color:         var(--text-muted);
+  transition:    var(--transition);
+}
+
+.mobile-menu a:hover {
+  color:      var(--text);
+  background: var(--surface);
+}
+
+
+/* =======================================================
+   07. HERO SECTION
+======================================================= */
+
+/* ── Section wrapper ── */
+
+/*
+  Secção hero a ecrã completo. Usa flex para centrar o conteúdo
+  verticalmente. O padding-top compensa a altura da navbar fixa.
+*/
+#home {
+  position:        relative;
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  overflow:        hidden;
+  min-height:      100vh;
+  padding-top:     var(--nav-h);
+}
+
+/* ── Ambient gradient orbs ── */
+
+/*
+  Bolhas de gradiente desfocadas no fundo, puramente decorativas.
+  O filtro blur elevado (100px) cria o efeito "glow" difuso.
+  Animadas por orbFloat para movimento suave e orgânico.
+*/
+.hero-orb {
+  position:       absolute;
+  border-radius:  50%;
+  filter:         blur(100px);
+  pointer-events: none;
+  animation:      orbFloat 8s ease-in-out infinite alternate;
+}
+
+/* Orb roxo — canto superior direito */
+.hero-orb-1 {
+  width:              500px;
+  height:             500px;
+  top:                -100px;
+  right:              -100px;
+  background:         rgba(123, 97, 255, 0.15);
+  animation-duration: 9s;
+}
+
+/* Orb ciano — canto inferior esquerdo; direção inversa para contra-movimento */
+.hero-orb-2 {
+  width:                400px;
+  height:               400px;
+  bottom:               0;
+  left:                 -100px;
+  background:           rgba(0, 229, 255, 0.08);
+  animation-duration:   11s;
+  animation-direction:  alternate-reverse;
+}
+
+/* ── Background grid ── */
+
+/*
+  Grelha de linhas subtis criada com dois gradientes lineares cruzados.
+  Puramente decorativa; pointer-events:none evita interferência.
+*/
+.hero-grid {
+  position:         absolute;
+  inset:            0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background-size:  60px 60px;
+  pointer-events:   none;
+}
+
+/* ── Content block ── */
+
+/* Centraliza o conteúdo textual acima dos elementos de fundo (z-index:1) */
+.hero-content {
+  position:   relative;
+  z-index:    1;
+  width:      100%;
+  padding:    4rem 0 2rem;
+  text-align: center;
+}
+
+/* ── Availability badge ── */
+
+/*
+  Badge de disponibilidade em formato pill com borda semi-transparente.
+  O ::before gera o ponto pulsante de status (animado por pulse).
+*/
+.hero-badge {
+  display:        inline-flex;
+  align-items:    center;
+  gap:            0.5rem;
+  margin-bottom:  2rem;
+  padding:        0.4rem 1rem;
+  border:         1px solid rgba(123, 97, 255, 0.3);
+  border-radius:  100px;
+  background:     rgba(123, 97, 255, 0.08);
+  font-family:    'DM Mono', monospace;
+  font-size:      0.78rem;
+  color:          var(--accent);
+  animation:      fadeUp 0.6s ease both;
+}
+
+/* Ponto de status pulsante gerado por CSS */
+.hero-badge::before {
+  content:       '';
+  width:         6px;
+  height:        6px;
+  border-radius: 50%;
+  background:    var(--accent);
+  animation:     pulse 2s infinite;
+}
+
+/* ── Title ── */
+
+/*
+  Título principal com tamanho fluido (clamp) e limite de largura
+  em caracteres para controlo de quebras de linha.
+  Animado com fadeUp e delay escalonado.
+*/
+.hero-title {
+  font-size:      clamp(3.2rem, 6vw, 6rem);
+  font-weight:    800;
+  line-height:    1.1;
+  letter-spacing: -0.03em;
+  max-width:      14ch;
+  margin-bottom:  1.5rem;
+  margin-left:    auto;
+  margin-right:   auto;
+  animation:      fadeUp 0.6s 0.1s ease both;
+}
+
+/*
+  Nome em itálico com gradiente de texto.
+  Usa Instrument Serif para contraste tipográfico com o Syne do título.
+  -webkit-text-fill-color:transparent é necessário para revelar o gradiente.
+*/
+.hero-title em {
+  font-family:              'Instrument Serif', serif;
+  font-style:               italic;
+  background:               linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-background-clip:  text;
+  -webkit-text-fill-color:  transparent;
+  background-clip:          text;
+}
+
+/* ── Subtitle ── */
+
+/* Cargo/função em monospace com delay de 0.2s na animação de entrada */
+.hero-subtitle {
+  font-family:   'DM Mono', monospace;
+  font-size:     clamp(1rem, 2.5vw, 1.25rem);
+  color:         var(--text-muted);
+  margin-bottom: 3rem;
+  animation:     fadeUp 0.6s 0.2s ease both;
+}
+
+/* ── CTA row ── */
+
+/* Fila de pills de redes sociais; centrada com flex-wrap para mobile */
+.hero-cta {
+  display:         flex;
+  flex-wrap:       wrap;
+  justify-content: center;
+  gap:             1rem;
+  margin-bottom:   0;
+  animation:       fadeUp 0.6s 0.3s ease both;
+}
+
+/* ── Social pills ── */
+
+/* Botões de link social em formato pill com ícone + texto */
+.social-pill {
+  display:       inline-flex;
+  align-items:   center;
+  gap:           0.6rem;
+  padding:       0.65rem 1.25rem;
+  border:        1px solid var(--border);
+  border-radius: 100px;
+  background:    var(--bg-2);
+  font-size:     0.88rem;
+  font-weight:   600;
+  transition:    var(--transition);
+}
+
+.social-pill svg {
+  width:       18px;
+  height:      18px;
+  flex-shrink: 0;
+}
+
+/* Hover com elevação e glow — reforça o carácter interativo */
+.social-pill:hover {
+  border-color: var(--accent);
+  color:        var(--accent);
+  transform:    translateY(-2px);
+  box-shadow:   0 8px 24px rgba(123, 97, 255, 0.2);
+}
+
+
+/* =======================================================
+   08. TECH TICKER
+======================================================= */
+
+/*
+  Faixa de tecnologias com scroll horizontal infinito.
+  Os pseudo-elementos ::before e ::after criam gradientes de fade
+  nas bordas para dissimular o loop contínuo.
+*/
+.ticker-wrap {
+  position:   relative;
+  overflow:   hidden;
+  width:      100%;
+  margin-top: 3rem;
+  padding:    1.25rem 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-2);
+}
+
+/* Gradientes de fade nas bordas esquerda e direita do ticker */
+.ticker-wrap::before,
+.ticker-wrap::after {
+  content:        '';
+  position:       absolute;
+  top:            0;
+  bottom:         0;
+  z-index:        2;
+  width:          120px;
+  pointer-events: none;
+}
+
+.ticker-wrap::before {
+  left:       0;
+  background: linear-gradient(to right, var(--bg-2), transparent);
+}
+
+.ticker-wrap::after {
+  right:      0;
+  background: linear-gradient(to left, var(--bg-2), transparent);
+}
+
+/* ── Scrolling track ── */
+
+/*
+  A faixa tem largura max-content e os itens são duplicados por main.js
+  para garantir scroll contínuo sem salto visível ao reiniciar o loop.
+  A animação ticker move a track -50% (equivalente a um conjunto de itens).
+*/
+.ticker-track {
+  display:    flex;
+  gap:        3rem;
+  width:      max-content;
+  animation:  ticker 22s linear infinite;
+}
+
+/* ── Individual item ── */
+
+/* Cada item do ticker — ícone ou nome de tecnologia com ponto separador */
+.ticker-item {
+  display:     flex;
+  align-items: center;
+  gap:         0.75rem;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: 'DM Mono', monospace;
+  font-size:   0.85rem;
+  font-weight: 500;
+  color:       var(--text-muted);
+}
+
+/* Ponto circular de separação entre itens do ticker */
+.ticker-item .dot {
+  width:         5px;
+  height:        5px;
+  flex-shrink:   0;
+  border-radius: 50%;
+  background:    var(--accent);
+}
+
+
+/* =======================================================
+   09. PROJECTS SECTION
+======================================================= */
+
+/* Fundo ligeiramente mais claro para diferenciar visualmente da secção hero */
+#projects { background: var(--bg-2); }
+
+/* ── Section header row ── */
+
+/* Linha com título à esquerda e controlos do slider à direita */
+.projects-header {
+  display:         flex;
+  align-items:     flex-end;
+  justify-content: space-between;
+  flex-wrap:       wrap;
+  gap:             2rem;
+  margin-bottom:   3rem;
+}
+
+/* ── Slider arrow controls ── */
+
+.slider-controls {
+  display: flex;
+  gap:     0.75rem;
+}
+
+/* Botão circular de navegação do slider */
+.slider-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  flex-shrink:     0;
+  width:           46px;
+  height:          46px;
+  border:          1px solid var(--border);
+  border-radius:   50%;
+  background:      var(--surface);
+  color:           var(--text);
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+/* Hover preenche o botão com a cor accent */
+.slider-btn:hover {
+  background:   var(--accent);
+  border-color: var(--accent);
+}
+
+.slider-btn svg {
+  width:  20px;
+  height: 20px;
+}
+
+/* ── Slider viewport & track ── */
+
+/* Viewport com overflow:hidden mascara os cartões fora do ecrã */
+.slider-viewport {
+  overflow:      hidden;
+  border-radius: var(--radius-lg);
+}
+
+/*
+  Faixa de cartões em flex; a posição é alterada por main.js
+  via transform:translateX() com transição cubic-bezier suave.
+  will-change:transform ativa aceleração de GPU.
+*/
+.slider-track {
+  display:      flex;
+  gap:          1.5rem;
+  will-change:  transform;
+  transition:   transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Project card ── */
+
+/*
+  Cada cartão ocupa 1/3 da largura em desktop.
+  min-width garante legibilidade em viewports intermédios antes
+  das media queries reduzirem para 50% ou 100%.
+*/
+.project-card {
+  position:      relative;
+  flex:          0 0 calc(33.333% - 1rem);
+  min-width:     280px;
+  overflow:      hidden;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:    var(--bg-3);
+  cursor:        pointer;
+  transition:    var(--transition);
+}
+
+/* Hover com elevação, borda colorida e glow sutil */
+.project-card:hover {
+  border-color: rgba(123, 97, 255, 0.4);
+  transform:    translateY(-6px);
+  box-shadow:   0 20px 60px rgba(0, 0, 0, 0.4),
+                0 0 0 1px rgba(123, 97, 255, 0.2);
+}
+
+/* Card image / placeholder */
+
+/* Imagem do cartão com aspect-ratio fixo para consistência visual */
+.project-card-img {
+  position:     relative;
+  overflow:     hidden;
+  display:      block;
+  width:        100%;
+  aspect-ratio: 16 / 9;
+  object-fit:   cover;
+  background:   var(--surface);
+}
+
+/* Placeholder quando não existe imagem: centra emoji ou ícone representativo */
+.project-img-placeholder {
+  position:        relative;
+  overflow:        hidden;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           100%;
+  aspect-ratio:    16 / 9;
+  font-size:       2.5rem;
+}
+
+/* Card body */
+.project-card-body {
+  padding: 1.5rem;
+}
+
+.project-card-title {
+  font-size:     1.15rem;
+  font-weight:   700;
+  line-height:   1.3;
+  margin-bottom: 0.5rem;
+}
+
+/*
+  Descrição truncada a 2 linhas via -webkit-line-clamp.
+  Garante altura uniforme entre cartões independentemente do texto.
+*/
+.project-card-desc {
+  display:            -webkit-box;
+  overflow:           hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  font-size:          0.85rem;
+  color:              var(--text-muted);
+  margin-bottom:      1rem;
+}
+
+/* ── Tag chips ── */
+
+/* Lista horizontal de chips de tecnologia com estilo accent */
+.tag-list {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       0.4rem;
+}
+
+.tag {
+  padding:       0.25rem 0.65rem;
+  border:        1px solid rgba(123, 97, 255, 0.2);
+  border-radius: 6px;
+  background:    rgba(123, 97, 255, 0.12);
+  font-family:   'DM Mono', monospace;
+  font-size:     0.7rem;
+  color:         var(--accent);
+}
+
+
+/* =======================================================
+   10. MODAL
+======================================================= */
+
+/* ── Backdrop ── */
+
+/*
+  Overlay fixo sobre toda a página, inicialmente invisível (opacity:0)
+  e não interativo (pointer-events:none). A classe .open, adicionada por
+  main.js, revela o modal e restaura pointer-events.
+*/
+.modal-overlay {
+  position:        fixed;
+  inset:           0;
+  z-index:         2000;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  padding:         1.5rem;
+  background:      rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  opacity:         0;
+  pointer-events:  none;
+  transition:      opacity 0.3s;
+}
+
+.modal-overlay.open {
+  opacity:        1;
+  pointer-events: all;
+}
+
+/* ── Dialog box ── */
+
+/*
+  Caixa de diálogo com scroll interno e dimensão máxima controlada.
+  A animação de entrada (translateY + scale) cria sensação de profundidade;
+  revertida para o estado normal quando .open é aplicado ao overlay.
+*/
+.modal {
+  position:      relative;
+  overflow-y:    auto;
+  width:         100%;
+  max-width:     760px;
+  max-height:    90vh;
+  border:        1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:    var(--bg-3);
+  transform:     translateY(30px) scale(0.97);
+  transition:    transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-overlay.open .modal {
+  transform: translateY(0) scale(1);
+}
+
+/* ── Close button ── */
+
+/* Botão de fechar posicionado absolutamente no canto superior direito do modal */
+.modal-close {
+  position:        absolute;
+  top:             1.25rem;
+  right:           1.25rem;
+  z-index:         10;
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           36px;
+  height:          36px;
+  border:          1px solid var(--border);
+  border-radius:   50%;
+  background:      var(--surface);
+  color:           var(--text);
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+.modal-close:hover {
+  background:   var(--accent);
+  border-color: var(--accent);
+}
+
+.modal-close svg {
+  width:  16px;
+  height: 16px;
+}
+
+/* ── Preview image ── */
+
+/* Imagem de capa do projeto com border-radius apenas nos cantos superiores */
+.modal-img {
+  width:         100%;
+  aspect-ratio:  16 / 9;
+  object-fit:    cover;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+/* ── Content body ── */
+.modal-body {
+  padding: 2rem;
+}
+
+.modal-title {
+  font-size:     1.75rem;
+  font-weight:   800;
+  margin-bottom: 1rem;
+}
+
+/* Sub-secção do modal (ex: descrição, tecnologias, features) */
+.modal-section {
+  margin-bottom: 1.5rem;
+}
+
+/* Cabeçalho de sub-secção em monospace uppercase — estilo consistente com section-label */
+.modal-section h4 {
+  font-family:    'DM Mono', monospace;
+  font-size:      0.72rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color:          var(--accent);
+  margin-bottom:  0.6rem;
+}
+
+.modal-section p {
+  font-size:   0.95rem;
+  line-height: 1.7;
+  color:       var(--text-muted);
+}
+
+/* ── Action buttons row ── */
+
+/* Fila de botões de ação no rodapé do modal (ex: GitHub, Live Demo) */
+.modal-actions {
+  display:    flex;
+  flex-wrap:  wrap;
+  gap:        0.75rem;
+  margin-top: 2rem;
+}
+
+
+/* =======================================================
+   11. ABOUT SECTION
+======================================================= */
+
+#about { position: relative; }
+
+/* ── Centered content wrapper ── */
+
+/* Coluna centrada de largura máxima para manter a bio legível */
+.about-grid {
+  display:        flex;
+  flex-direction: column;
+  align-items:    center;
+  max-width:      760px;
+  margin:         0 auto;
+  text-align:     center;
+}
+
+.about-bio {
+  font-size:     1.05rem;
+  line-height:   1.8;
+  color:         var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+/* ── Career goal quote box ── */
+
+/*
+  Caixa destacada com o objetivo profissional, estilizada como citação.
+  O pseudo-elemento ::before insere aspas decorativas (Instrument Serif)
+  com opacidade reduzida para não competir com o texto.
+*/
+.goal-box {
+  position:      relative;
+  margin-bottom: 2rem;
+  padding:       1.25rem 1.5rem;
+  border:        1px solid rgba(123, 97, 255, 0.2);
+  border-radius: var(--radius);
+  background:    rgba(123, 97, 255, 0.08);
+  font-size:     0.95rem;
+  line-height:   1.7;
+  color:         var(--text-muted);
+}
+
+/* Aspas de abertura decorativas geradas via content */
+.goal-box::before {
+  content:     '"';
+  position:    absolute;
+  top:         -0.5rem;
+  left:        1rem;
+  line-height: 1;
+  font-family: 'Instrument Serif', serif;
+  font-size:   4rem;
+  color:       var(--accent);
+  opacity:     0.3;
+}
+
+
+/* =======================================================
+   12. CONTACT SECTION
+======================================================= */
+
+/* Fundo alternado para separação visual entre About e Contact */
+#contact { background: var(--bg-2); }
+
+/* ── Two-column layout ── */
+
+/* Grid assimétrico: coluna de info (1fr) + formulário (1.5fr) */
+.contact-grid {
+  display:               grid;
+  grid-template-columns: 1fr 1.5fr;
+  align-items:           start;
+  gap:                   5rem;
+}
+
+/* ── Left: info block ── */
+.contact-info h3 {
+  font-size:     1.5rem;
+  font-weight:   700;
+  margin-bottom: 1rem;
+}
+
+.contact-info p {
+  line-height:   1.7;
+  color:         var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+/* ── Social link list ── */
+
+/* Lista vertical de links para perfis externos */
+.social-links {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.75rem;
+}
+
+.social-link {
+  display:       flex;
+  align-items:   center;
+  gap:           1rem;
+  padding:       0.85rem 1.25rem;
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  background:    var(--bg-3);
+  font-size:     0.9rem;
+  font-weight:   500;
+  transition:    var(--transition);
+}
+
+.social-link svg {
+  width:       20px;
+  height:      20px;
+  flex-shrink: 0;
+  color:       var(--accent);
+}
+
+/* Hover com deslize horizontal para a direita — reforça interatividade */
+.social-link:hover {
+  border-color: rgba(123, 97, 255, 0.4);
+  background:   var(--surface);
+  transform:    translateX(4px);
+}
+
+/* ── Right: contact form ── */
+
+.contact-form {
+  display:        flex;
+  flex-direction: column;
+  gap:            1rem;
+}
+
+/* Linha com dois campos lado a lado (Nome + Email) */
+.form-row {
+  display:               grid;
+  grid-template-columns: 1fr 1fr;
+  gap:                   1rem;
+}
+
+.form-group {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.4rem;
+}
+
+/* Labels em estilo monospace uppercase — alinhados com section-label */
+.form-group label {
+  font-family:    'DM Mono', monospace;
+  font-size:      0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color:          var(--text-muted);
+}
+
+.form-group input,
+.form-group textarea {
+  padding:       0.85rem 1rem;
+  border:        1px solid var(--border);
+  border-radius: var(--radius);
+  outline:       none;
+  resize:        vertical;
+  background:    var(--bg-3);
+  font-family:   'Syne', sans-serif;
+  font-size:     0.95rem;
+  color:         var(--text);
+  transition:    var(--transition);
+}
+
+/* Foco com borda e glow na cor accent */
+.form-group input:focus,
+.form-group textarea:focus {
+  border-color: var(--accent);
+  box-shadow:   0 0 0 3px rgba(123, 97, 255, 0.15);
+}
+
+.form-group textarea { min-height: 140px; }
+
+/* Submit button */
+.form-submit {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.5rem;
+  padding:         1rem 2rem;
+  border:          none;
+  border-radius:   var(--radius);
+  background:      var(--accent);
+  font-family:     'Syne', sans-serif;
+  font-size:       1rem;
+  font-weight:     600;
+  color:           #fff;
+  cursor:          pointer;
+  transition:      var(--transition);
+}
+
+/* Hover com elevação e sombra glow para reforçar a chamada à ação */
+.form-submit:hover {
+  background:  #6a50e0;
+  transform:   translateY(-2px);
+  box-shadow:  0 12px 32px rgba(123, 97, 255, 0.35);
+}
+
+/*
+  Mensagem de sucesso após submissão do formulário.
+  Oculta por defeito; main.js altera display para 'block' após envio.
+*/
+.form-success {
+  display:       none;
+  padding:       2rem;
+  border:        1px solid rgba(0, 229, 255, 0.2);
+  border-radius: var(--radius);
+  background:    rgba(0, 229, 255, 0.06);
+  font-weight:   600;
+  text-align:    center;
+  color:         var(--accent-2);
+}
+
+
+/* =======================================================
+   13. FOOTER
+======================================================= */
+
+footer {
+  padding:    2rem 0;
+  border-top: 1px solid var(--border);
+  text-align: center;
+}
+
+footer p {
+  font-family: 'DM Mono', monospace;
+  font-size:   0.8rem;
+  color:       var(--text-dim);
+}
+
+/* Elementos <span> no footer (coração e nome) herdam a cor accent */
+footer span { color: var(--accent); }
+
+
+/* =======================================================
+   14. ANIMATIONS & KEYFRAMES
+======================================================= */
+
+/* Orb float — movimento vertical suave e oscilação de escala para os orbs do hero */
+@keyframes orbFloat {
+  from { transform: translateY(0)     scale(1);    }
+  to   { transform: translateY(-40px) scale(1.05); }
+}
+
+/* Pulsação — anima o ponto de status na badge de disponibilidade */
+@keyframes pulse {
+  0%,  100% { opacity: 1;   transform: scale(1);   }
+  50%        { opacity: 0.5; transform: scale(0.8); }
+}
+
+/* Entrada animada — usada nos elementos do hero com delays escalonados (0s, 0.1s, 0.2s, 0.3s) */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/*
+  Scroll do ticker — move a faixa -50% em loop infinito.
+  Os itens são duplicados por main.js para que ao atingir -50%
+  a posição visual seja idêntica ao início, criando loop sem salto.
+*/
+@keyframes ticker {
+  0%   { transform: translateX(0);     }
+  100% { transform: translateX(-50%);  }
+}
+
+
+/* =======================================================
+   15. SCROLL REVEAL
+======================================================= */
+
+/*
+  Estado inicial dos elementos animados ao scroll.
+  Começam invisíveis e deslocados para baixo.
+  main.js usa IntersectionObserver para adicionar .visible
+  quando o elemento entra no viewport, ativando a transição.
+*/
+.reveal {
+  opacity:    0;
+  transform:  translateY(32px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+
+/* Estado final após entrada no viewport */
+.reveal.visible {
+  opacity:   1;
+  transform: none;
+}
+
+
+/* =======================================================
+   16. PDF MODAL — Viewer PDF.js com 3 camadas
+   =======================================================
+
+   Estilos para o visualizador de PDF implementado em pdfModal.js.
+   Complementa o modal existente (.modal, .modal-overlay) sem
+   sobrescrever nenhuma regra existente.
+
+   Estrutura de camadas (z-index):
+     #pdfCanvas           → base visual (bitmap renderizado)
+     .textLayer           → z-index 2 — texto selecionável
+     .annotationLayer     → z-index 3 — links clicáveis
+
+   NOTA: As classes .textLayer e .annotationLayer têm estilos
+   base definidos pelo pdf_viewer.min.css (CDN). As regras
+   abaixo apenas complementam ou ajustam esses estilos.
+======================================================= */
+
+
+/* =======================================================
+   PDF MODAL — LAYOUT INTERNO
+======================================================= */
+
+/*
+  Container flex vertical que organiza header e área de canvas.
+  height:100% ocupa todo o espaço disponível dentro do .modal.
+*/
+.pdf-modal-inner {
+  display:        flex;
+  flex-direction: column;
+  height:         100%;
+  min-height:     0; /* necessário para flex children com overflow */
+}
+
+/*
+  Barra superior com título "Curriculum Vitae" e botão de download.
+  flex-shrink:0 impede compressão quando o canvas é alto.
+
+  padding-right: 4rem reserva espaço para o .modal-close (position:absolute),
+  que tem width:36px + right:1.25rem. Sem esta reserva, o botão Download
+  ficaria posicionado por baixo do botão X, causando sobreposição visual.
+  Cálculo: 36px (botão X) + 1.25rem (right) + 0.75rem (folga) ≈ 4rem.
+*/
+.pdf-modal-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  padding:         1.25rem 4rem 1.25rem 1.5rem;
+  border-bottom:   1px solid var(--border);
+  flex-shrink:     0;
+}
+
+/* Label "CURRICULUM VITAE" em estilo monospace uppercase */
+.pdf-modal-title {
+  font-family:    'DM Mono', monospace;
+  font-size:      0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color:          var(--accent);
+}
+
+/* Variante compacta do .btn.btn-ghost existente para o botão Download */
+.pdf-download-btn {
+  font-size: 0.82rem;
+  padding:   0.45rem 0.9rem;
+  gap:       0.4rem;
+}
+
+/*
+  Área de scroll que envolve o container das camadas.
+  overflow-y:auto → scroll interno quando o CV é mais alto que o modal.
+  flex:1 → ocupa todo o espaço vertical restante após o header.
+  padding: espaço visual à volta do PDF.
+*/
+.pdf-canvas-wrap {
+  overflow-y:  auto;
+  overflow-x:  hidden;
+  flex:        1;
+  min-height:  0; /* obrigatório para scroll interno funcionar em flex */
+  background:  var(--bg-3);
+  padding:     1.5rem;
+}
+
+
+/* =======================================================
+   PDF — CONTAINER DAS 3 CAMADAS
+======================================================= */
+
+/*
+  Container que envolve as três camadas sobrepostas.
+
+  position:relative — contexto de posicionamento para as camadas filhas.
+    O canvas ocupa espaço no fluxo normal; textLayer e annotationLayer
+    usam position:absolute com inset:0, ancorando-se a este elemento.
+
+  width e height são definidos por JavaScript (pdfModal.js) com as
+  dimensões exatas do viewport escalado, garantindo que as camadas
+  absolutas coincidem pixel-a-pixel com o canvas.
+
+  display:inline-block + margin:auto centra o container quando
+  o PDF é mais estreito que o espaço disponível.
+*/
+.pdf-page-container {
+  position:      relative;
+  display:       block;
+  margin:        0 auto;
+
+  /* Sombra e radius integram o PDF no design escuro do modal */
+  border-radius: 4px;
+  box-shadow:    0 4px 32px rgba(0, 0, 0, 0.5);
+  overflow:      hidden; /* clip para o border-radius funcionar nas camadas */
+}
+
+
+/* =======================================================
+   PDF — CAMADA 1: CANVAS
+======================================================= */
+
+/*
+  Canvas gerado com as dimensões exatas do viewport PDF.js.
+  display:block elimina o espaço inline extra abaixo do canvas.
+  max-width:100% permite responsividade se o viewport encolher
+  após a renderização (ex: rodar o dispositivo).
+
+  NOTA: width e height em px são definidos por JavaScript.
+  Não definir aqui com CSS para não sobrescrever o JavaScript.
+*/
+#pdfCanvas {
+  display:   block;
+  max-width: 100%;
+}
+
+
+/* =======================================================
+   PDF — CAMADA 2: TEXT LAYER
+======================================================= */
+
+/*
+  A .textLayer é posicionada absolutamente sobre o canvas.
+  O CSS base do PDF.js (pdf_viewer.min.css) define os estilos
+  internos dos spans — aqui apenas reforçamos o posicionamento
+  e garantimos que não interfere visualmente.
+
+  ATENÇÃO — Regras críticas:
+    position:absolute + inset:0 → sobrepõe exatamente o canvas.
+    z-index:2 → acima do canvas, abaixo da annotationLayer.
+    overflow:hidden → clips de spans que possam sair dos limites.
+    pointer-events:none em spans internos (definido pelo CSS do PDF.js)
+      → cliques passam para a annotationLayer.
+    user-select:text → garante que o texto é selecionável.
+
+  O transform-origin:0 0 e o transform do CSS do PDF.js
+  alinham os spans com o texto renderizado no canvas.
+*/
+.pdf-page-container .textLayer {
+  position:         absolute;
+  inset:            0;
+  z-index:          2;
+  overflow:         hidden;
+  opacity:          1;    /* o CSS do PDF.js já define spans como transparentes */
+  line-height:      1;
+  user-select:      text;
+  -webkit-user-select: text;
+
+  /* Highlight de seleção de texto — cor accent para consistência visual */
+  --text-layer-highlight-color: rgba(123, 97, 255, 0.35);
+}
+
+/*
+  Override do highlight de seleção do PDF.js.
+  O CSS padrão usa um azul genérico; alinhamos com o accent do projeto.
+*/
+.pdf-page-container .textLayer ::selection {
+  background: rgba(123, 97, 255, 0.35);
+}
+
+.pdf-page-container .textLayer ::-moz-selection {
+  background: rgba(123, 97, 255, 0.35);
+}
+
+
+/* =======================================================
+   PDF — CAMADA 3: ANNOTATION LAYER
+======================================================= */
+
+/*
+  A .annotationLayer é posicionada sobre a textLayer.
+  Contém os links do PDF como elementos <a> reais e outros
+  elementos interativos definidos no documento PDF.
+
+  z-index:3 → acima de canvas e textLayer.
+  position:absolute + inset:0 → cobre exatamente o canvas.
+
+  O CSS do PDF.js posiciona cada annotation individualmente
+  usando left/top/width/height em percentagem ou px.
+  pointer-events são controlados por elemento: apenas as
+  sections com links têm pointer-events:auto.
+*/
+.pdf-page-container .annotationLayer {
+  position: absolute;
+  inset:    0;
+  z-index:  3;
+  overflow: hidden;
+}
+
+/*
+  Links dentro da annotationLayer.
+  O PDF.js cria elementos <section><a> por cada link.
+  Garantimos que os links são visualmente transparentes
+  (não sobrepõem o design) mas funcionalmente clicáveis.
+*/
+.pdf-page-container .annotationLayer .linkAnnotation > a,
+.pdf-page-container .annotationLayer .linkAnnotation > a:hover {
+  /* Área clicável transparente — não interfere com o canvas */
+  background:  transparent;
+  border:      none;
+  outline:     none;
+  /* cursor pointer indica ao utilizador que é clicável */
+  cursor:      pointer;
+}
+
+/*
+  Ao fazer hover num link, mostra um highlight subtil
+  que indica a área clicável sem sobrepor o design.
+*/
+.pdf-page-container .annotationLayer .linkAnnotation > a:hover {
+  background:    rgba(123, 97, 255, 0.12);
+  border-radius: 2px;
+}
+
+
+/* =======================================================
+   PDF — LOADING INDICATOR
+======================================================= */
+
+/*
+  Três pontos animados exibidos enquanto o PDF.js processa.
+  Visível entre o openPdfModal() e o fim da renderização.
+*/
+.pdf-loading {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.5rem;
+  padding:         5rem 2rem;
+}
+
+.pdf-loading-dot {
+  width:         8px;
+  height:        8px;
+  border-radius: 50%;
+  background:    var(--accent);
+  animation:     pdfDotPulse 1.2s ease-in-out infinite;
+}
+
+.pdf-loading-dot:nth-child(2) { animation-delay: 0.2s; }
+.pdf-loading-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes pdfDotPulse {
+  0%,  80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40%            { opacity: 1;   transform: scale(1.2); }
+}
+
+
+/* =======================================================
+   PDF — ESTADO DE ERRO
+======================================================= */
+
+.pdf-error {
+  display:         flex;
+  flex-direction:  column;
+  align-items:     center;
+  justify-content: center;
+  padding:         4rem 2rem;
+  text-align:      center;
+  color:           var(--text-muted);
+  font-size:       0.95rem;
+}
+
+
+/* =======================================================
+   PDF — RESPONSIVO
+======================================================= */
+
+@media (max-width: 768px) {
+  /* Reduz padding para maximizar a largura útil do PDF em mobile */
+  .pdf-canvas-wrap {
+    padding: 1rem 0.5rem;
+  }
+
+  .pdf-modal-header {
+    padding: 1rem 4rem 1rem 1rem; /* padding-right mantém reserva para o botão X em mobile */
+  }
+
+  .pdf-modal-title {
+    font-size: 0.68rem;
+  }
+}
+
+
+/* =======================================================
+   17. RESPONSIVE
+======================================================= */
+
+/* Tablet: contact passa a coluna única; cards ocupam metade da largura */
+@media (max-width: 1024px) {
+  .contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+  .project-card { flex: 0 0 calc(50% - 0.75rem); }
+}
+
+@media (max-width: 768px) {
+  /* Navigation */
+  .nav-links        { display: none; }   /* Links substituídos pelo menu mobile */
+  .hamburger        { display: flex; }   /* Hamburger visível em mobile */
+  .nav-actions .btn { display: none; }   /* Botão CV oculto; acedido pelo menu ou about */
+
+  /* Layout */
+  .section       { padding: 80px 0; }   /* Espaçamento vertical reduzido em mobile */
+
+  /* Projects */
+  .project-card  { flex: 0 0 100%; }    /* Um cartão por linha em ecrãs pequenos */
+
+  /* Contact form */
+  .form-row      { grid-template-columns: 1fr; }  /* Campos empilhados verticalmente */
+
+  /* Hero */
+  .hero-cta      { flex-direction: column; align-items: center; }  /* Pills sociais em coluna */
+}
