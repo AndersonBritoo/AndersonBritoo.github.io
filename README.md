@@ -45,7 +45,7 @@ Por ser um projeto de frontend estático, não é necessária qualquer instalaç
 ## Estrutura do Projeto
 
 ```
-portfolio/
+portfolio_website/
 │
 ├─ assets/                             # Recursos estáticos
 │  └─ CV_Anderson_Brito_FullStack.pdf  # Curriculum Vitae em PDF
